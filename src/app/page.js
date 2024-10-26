@@ -1,95 +1,75 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import { useEffect, useState } from "react";
+import Article from "@/app/components/Article"
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Nav from "@/app/components/navbar"
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+const Page = ()=>{
+
+  const [articles, setArticles] = useState()
+  const [count, setCount] = useState(1)
+  const [value, setValue] = useState("")
+  const router = useRouter()
+  const getArticle = async()=>{
+    const JSONdata = await fetch(`https://dev.to/api/articles?per_page=10&page=${count}`);
+    const data = await JSONdata.json()
+    setArticles(data)
+    console.log(data)
+  }
+
+  useEffect(()=>{
+    getArticle()
+  },[count]);
+
+  const goBack = ()=>{
+    if(count === 1){
+      return;
+    }else{
+      setCount(count - 1)
+    }
+  }
+
+  const goForward = ()=>{
+
+    if(filter.length){
+      setCount(count + 1)
+    }else{
+      return;
+    }
+  }
+
+  const filter = articles?.filter((item)=>{
+    return item.title.toLowerCase().includes(value) || item.user.name.toLowerCase().includes(value)? item:null;
+  })
+
+  console.log(filter)
+
+  return(
+    <Nav articles = {articles} setArticles = {setArticles} setValue={setValue}>
+      <div className="none">
+        <div className="center">
+          <div className="home">All Blog Post</div>
+          <div className="grid">
+            {filter?.length > 0 ?(filter?.map((item, index) =>{
+              return <Article key={index} title ={item.title} date={item.readable_publish_date} name = {item.user.name} id = {item.id} profilePic = {item.user.profile_image} description = {item.description} coverPic = {item.cover_image}/>
+            })):<div className="nothing">Nothing Found</div>}
+          </div>
+          <div className="footer">
+            <div>
+              <button className="skip" onClick={()=>goBack()}>Go Back</button>
+            </div>
+            <div className="count">{count}</div>
+            <div>
+              <button className="skip" onClick={()=>goForward()}>Go Forward</button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      </div>
+    </Nav>
+  )
+
 }
+
+export default Page;
